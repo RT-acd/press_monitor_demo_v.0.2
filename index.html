@@ -151,76 +151,76 @@
             <!-- 左側：キーボード入力設定エリア (Standard vs Actual) (幅: col-span-3) -->
             <div class="col-span-3 flex flex-col gap-3 h-full">
                 <!-- 標準SPM -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
-                    <p class="text-[11px] font-black text-slate-400 mb-1 flex items-center gap-1">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-2 flex flex-col justify-center flex-1">
+                    <p class="text-[10px] font-black text-slate-400 mb-0.5 flex items-center gap-1">
                         <i class="fa-solid fa-gauge-simple-high text-slate-400"></i>
-                        <span>Standard SPM / 理想値（標準能力）</span>
+                        <span>Standard SPM / 理想値</span>
                     </p>
-                    <p class="text-[9px] text-slate-500 mb-2 leading-tight">
-                        標準書や仕様に規定された理論上の最高スピード(分あたり)
+                    <p class="text-[8px] text-slate-500 mb-1 leading-tight">
+                        標準書や仕様に規定された理論上の最高スピード
                     </p>
                     <div class="relative mt-auto">
-                        <input type="number" id="std-spm" value="15.0" step="0.1" min="0.1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">SPM</span>
+                        <input type="number" id="std-spm" value="15.0" step="0.1" min="0.1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-1 text-white font-mono text-2xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-[10px] font-mono">SPM</span>
                     </div>
                 </div>
                 
                 <!-- 実績SPM -->
-                <div class="bg-slate-800 border-2 border-emerald-500/50 rounded-2xl p-3 flex flex-col justify-center flex-1">
-                    <p class="text-[11px] font-black text-emerald-400 mb-1 flex items-center gap-1">
+                <div class="bg-slate-800 border-2 border-emerald-500/50 rounded-2xl p-2 flex flex-col justify-center flex-1">
+                    <p class="text-[10px] font-black text-emerald-400 mb-0.5 flex items-center gap-1">
                         <i class="fa-solid fa-bolt text-emerald-400"></i>
-                        <span>Actual SPM / 実態値（今の設定）</span>
+                        <span>Actual SPM / 実態値</span>
                     </p>
-                    <p class="text-[9px] text-slate-400/80 mb-2 leading-tight">
-                        金型状況等を踏まえ、実際にプレス機に設定している回転数
+                    <p class="text-[8px] text-slate-400/80 mb-1 leading-tight">
+                        実際にプレス機に設定している回転数
                     </p>
                     <div class="relative mt-auto">
-                        <input type="number" id="act-spm" value="15.0" step="0.1" min="0" class="bg-slate-950 border-2 border-emerald-600 focus:border-emerald-400 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">SPM</span>
+                        <input type="number" id="act-spm" value="15.0" step="0.1" min="0" class="bg-slate-950 border-2 border-emerald-600 focus:border-emerald-400 rounded-xl w-full p-1 text-white font-mono text-2xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-[10px] font-mono">SPM</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 中央：タイムクロック ＆ ロス時間内訳 (余白とフォントサイズを縮小し、サブタイマーを完全に枠内へ保持) -->
-            <div class="col-span-6 bg-slate-950 border-2 border-slate-800 rounded-2xl p-3 flex flex-col justify-between items-center h-full">
+            <!-- 中央：タイムクロック ＆ ロス時間内訳 -->
+            <div class="col-span-6 bg-slate-950 border-2 border-slate-800 rounded-2xl p-2 flex flex-col justify-between items-center h-full">
                 <!-- 始業・終業時間表示 -->
-                <div class="w-full grid grid-cols-2 gap-3 bg-slate-900 border border-slate-800 rounded-xl px-4 py-1.5">
+                <div class="w-full grid grid-cols-2 gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-1">
                     <div class="text-left">
-                        <p class="text-[10px] text-slate-400 font-black tracking-wider">START TIME / 始業時刻</p>
-                        <p id="time-start-label" class="font-mono text-base text-emerald-400 font-black">未記録</p>
+                        <p class="text-[9px] text-slate-400 font-black tracking-wider">START TIME / 始業時刻</p>
+                        <p id="time-start-label" class="font-mono text-sm text-emerald-400 font-black">未記録</p>
                     </div>
-                    <div class="text-right border-l border-slate-800 pl-3">
-                        <p class="text-[10px] text-slate-400 font-black tracking-wider">END TIME / 終業時刻</p>
-                        <p id="time-end-label" class="font-mono text-base text-rose-400 font-black">未記録</p>
+                    <div class="text-right border-l border-slate-800 pl-2">
+                        <p class="text-[9px] text-slate-400 font-black tracking-wider">END TIME / 終業時刻</p>
+                        <p id="time-end-label" class="font-mono text-sm text-rose-400 font-black">未記録</p>
                     </div>
                 </div>
 
-                <!-- 稼働中タイマー (見切れ防止のためフォントを適度なサイズに小さく調整) -->
-                <div class="text-center my-1.5 flex flex-col justify-center items-center">
-                    <p class="text-[10px] font-black text-slate-500 tracking-widest mb-0.5">
+                <!-- 稼働中タイマー -->
+                <div class="text-center my-0.5 flex flex-col justify-center items-center">
+                    <p class="text-[9px] font-black text-slate-500 tracking-widest mb-0.5">
                         RUNNING TIME / 稼働経過時間
                     </p>
-                    <div class="font-mono text-5xl text-white tracking-wider font-black leading-none" id="main-clock">
+                    <div class="font-mono text-4xl text-white tracking-wider font-black leading-none" id="main-clock">
                         00:00:00
                     </div>
-                    <div class="text-[10px] font-bold text-slate-500 mt-1" id="clock-sub">
+                    <div class="text-[9px] font-bold text-slate-500 mt-0.5" id="clock-sub">
                         READY / 始業ボタンを押してください
                     </div>
                 </div>
 
-                <!-- 各種非稼働の内訳タイマー (確実にはみ出さずに枠内に入るように調整) -->
-                <div class="w-full grid grid-cols-3 gap-2 border-t border-slate-900 pt-2">
+                <!-- 各種非稼働の内訳タイマー -->
+                <div class="w-full grid grid-cols-3 gap-1.5 border-t border-slate-900 pt-1.5">
                     <div class="text-center bg-slate-900/50 p-1 rounded-xl border border-slate-900">
-                        <p class="text-[10px] text-amber-500 font-bold mb-0.5"><i class="fa-solid fa-arrows-rotate mr-1"></i>金型交換</p>
-                        <p class="font-mono text-xs sm:text-sm text-white font-bold" id="time-mold">00:00:00</p>
+                        <p class="text-[9px] text-amber-500 font-bold mb-0.5"><i class="fa-solid fa-arrows-rotate mr-1"></i>金型交換</p>
+                        <p class="font-mono text-xs text-white font-bold" id="time-mold">00:00:00</p>
                     </div>
                     <div class="text-center bg-slate-900/50 p-1 rounded-xl border border-slate-900">
-                        <p class="text-[10px] text-sky-400 font-bold mb-0.5"><i class="fa-solid fa-coffee mr-1"></i>休憩・4S</p>
-                        <p class="font-mono text-xs sm:text-sm text-white font-bold" id="time-break">00:00:00</p>
+                        <p class="text-[9px] text-sky-400 font-bold mb-0.5"><i class="fa-solid fa-coffee mr-1"></i>休憩・4S</p>
+                        <p class="font-mono text-xs text-white font-bold" id="time-break">00:00:00</p>
                     </div>
                     <div class="text-center bg-slate-900/50 p-1 rounded-xl border border-slate-900">
-                        <p class="text-[10px] text-rose-500 font-bold mb-0.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i>異常停止</p>
-                        <p class="font-mono text-xs sm:text-sm text-white font-bold" id="time-stop">00:00:00</p>
+                        <p class="text-[9px] text-rose-500 font-bold mb-0.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i>異常停止</p>
+                        <p class="font-mono text-xs text-white font-bold" id="time-stop">00:00:00</p>
                     </div>
                 </div>
             </div>
@@ -228,29 +228,29 @@
             <!-- 右側：目標数・自動集計加工数 -->
             <div class="col-span-3 flex flex-col gap-3 h-full">
                 <!-- 本日の目標数入力 -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
-                    <p class="text-[11px] font-black text-slate-400 mb-1 flex items-center gap-1">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-2 flex flex-col justify-center flex-1">
+                    <p class="text-[10px] font-black text-slate-400 mb-0.5 flex items-center gap-1">
                         <i class="fa-solid fa-bullseye text-slate-400"></i>
                         <span>Target / 目標数設定</span>
                     </p>
                     <div class="relative mt-auto">
-                        <input type="number" id="target-count" value="1200" min="1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-1.5 text-white font-mono text-2xl text-center focus:outline-none transition-colors">
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">pcs</span>
+                        <input type="number" id="target-count" value="1200" min="1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-1 text-white font-mono text-xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-[10px] font-mono">pcs</span>
                     </div>
                 </div>
 
                 <!-- 自動集計の実績生産数 -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-2 sm:p-3 flex flex-col justify-center items-center flex-[1.4]">
-                    <p class="text-[11px] font-black text-slate-400 mb-0.5 tracking-wider uppercase">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-2 flex flex-col justify-center items-center flex-[1.2]">
+                    <p class="text-[10px] font-black text-slate-400 mb-0.5 tracking-wider uppercase">
                         Accumulated / 自動集計
                     </p>
-                    <p class="text-[8px] text-slate-500 mb-1.5 text-center leading-tight">
+                    <p class="text-[8px] text-slate-500 mb-1 text-center leading-tight">
                         稼働秒数×実績SPMから自動積算
                     </p>
-                    <div class="font-mono text-3xl sm:text-4xl font-black text-white leading-none mb-0.5" id="total-count">
+                    <div class="font-mono text-2xl font-black text-white leading-none mb-0.5" id="total-count">
                         0
                     </div>
-                    <div class="text-[10px] text-slate-400 font-bold mt-1">
+                    <div class="text-[9px] text-slate-400 font-bold mt-0.5">
                         目標: <span id="target-val" class="font-mono text-white font-black">1,200</span> pcs
                     </div>
                 </div>
