@@ -59,7 +59,7 @@
             box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.4);
         }
 
-        /* 各ボタンの色分け */
+        /* 各ボタンの色分け（ご要望通り白枠＋白文字で統一） */
         .btn-running { background: #059669; border: 3px solid #34d399; }
         .btn-mold { background: transparent; border: 3px solid #ffffff; color: #ffffff; }
         .btn-break { background: transparent; border: 3px solid #ffffff; color: #ffffff; }
@@ -118,6 +118,18 @@
         <!-- セーフティリセット、現在のステータス -->
         <div class="flex items-center gap-3">
             <!-- セーフティリセットボタン (2段階確認式) -->
+            <button class="bg-slate-800 hover:bg-slate-750 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-700 active:scale-95 transition-all" id="btn-reset" onclick="triggerReset()">
+                <i class="fa-solid fa-rotate-left text-amber-500"></i>
+                <span id="reset-text">データクリア</span>
+            </button>
+            <!-- 画面上のリアルタイム現在時刻 -->
+            <div id="live-time" class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl font-mono text-xs text-slate-400">17:15:00</div>
+        </div>
+    </div>
+
+    <!-- ビューA: 稼働モニターダッシュボード -->
+    <div id="view-dashboard" class="flex-1 flex flex-col gap-3 overflow-hidden">
+        
     <!-- 1. 性能稼働率パネル (コンパクトに高さを抑えつつ、パーセントを最大強調) -->
     <div class="bg-gradient-to-b from-slate-900 to-slate-850 border-4 border-emerald-500/80 rounded-2xl p-3 flex justify-between items-center relative transition-all shadow-lg shadow-emerald-950/20 flex-[0.9]" id="rate-box">
         <!-- 左側：現在のステータス表示 (新規追加) -->
@@ -786,8 +798,8 @@
                 <td class="p-3 font-mono text-rose-500">${rec.stop}</td>
                 <td class="p-3 font-mono font-bold text-emerald-400 text-right text-sm">${rec.perfRate}%</td>
                 <td class="p-3 text-center flex justify-center gap-2">
-                    <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="exportSingleCSV(${rec.id})" title="この日のCSVを出力"><i class="fa-solid fa-file-csv"></i></button>
-                    <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="sendMailAgain(${rec.id})" title="メール再送"><i class="fa-solid fa-envelope"></i></button>
+                    <button class="bg-slate-800 hover:bg-slate-750 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="exportSingleCSV(${rec.id})" title="この日のCSVを出力"><i class="fa-solid fa-file-csv"></i></button>
+                    <button class="bg-slate-800 hover:bg-slate-750 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="sendMailAgain(${rec.id})" title="メール再送"><i class="fa-solid fa-envelope"></i></button>
                     <button class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 p-1.5 rounded-lg active:scale-90" onclick="deleteHistory(${rec.id})" title="削除"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             `;
