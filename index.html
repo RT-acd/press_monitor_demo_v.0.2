@@ -15,7 +15,7 @@
     <!-- FontAwesome (アイコン素材集) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Tailwindのカスタムカラー・フォント設定（保守性の向上） -->
+    <!-- Tailwindのカスタムカラー・フォント設定 -->
     <script>
         tailwind.config = {
             theme: {
@@ -62,7 +62,6 @@
 </head>
 <body class="bg-slate-950 text-slate-100 flex items-center justify-center p-2 sm:p-4">
 
-<!-- iPadアスペクト比にフィットする頑丈なメインコンテナ -->
 <div class="w-full max-w-[1180px] h-full max-h-[820px] bg-slate-900 border-4 border-slate-800 rounded-[28px] shadow-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
     
     <!-- 共通ヘッダー -->
@@ -75,7 +74,6 @@
                 <h1 class="text-lg font-black text-white tracking-wider flex items-center gap-2">
                     PRESS MONITOR PRO
                 </h1>
-                <p class="text-[10px] text-slate-400 font-bold">iPad 1画面・自動性能稼働率見える化</p>
             </div>
         </div>
         
@@ -89,15 +87,8 @@
             </button>
         </div>
         
-        <!-- 管理設定、リセット、現在のステータス -->
+        <!-- セーフティリセット、現在のステータス -->
         <div class="flex items-center gap-3">
-            <!-- 宛先アドレス設定 -->
-            <div class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 flex items-center gap-2">
-                <i class="fa-solid fa-envelope"></i>
-                <span>報告先:</span>
-                <input type="email" id="report-email" value="factory-report@example.com" class="bg-transparent border-none text-emerald-400 font-bold focus:outline-none w-[160px]" title="終業報告の送信先メールアドレス">
-            </div>
-
             <!-- セーフティリセットボタン (2段階確認式) -->
             <button class="bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all active:scale-95" id="btn-reset" onclick="triggerReset()">
                 <i class="fa-solid fa-rotate-left"></i>
@@ -111,25 +102,25 @@
     <!-- ビューA: 稼働モニター (ダッシュボード) -->
     <div id="view-dashboard" class="flex-1 flex flex-col gap-3 fade-in">
         
-        <!-- 性能稼働率パネル (最上部に巨大配置) -->
-        <div class="bg-slate-800 border-3 border-slate-700 rounded-2xl p-4 flex flex-col justify-center items-center relative transition-all" id="rate-box">
-            <p class="text-xs font-black text-slate-400 tracking-widest uppercase mb-1">
+        <!-- 性能稼働率パネル (最上部にグラデーションと強いネオングローで巨大配置) -->
+        <div class="bg-gradient-to-b from-slate-900 to-slate-850 border-4 border-emerald-500/80 rounded-2xl p-4 flex flex-col justify-center items-center relative transition-all shadow-lg shadow-emerald-950/20" id="rate-box">
+            <p class="text-xs font-black text-emerald-400 tracking-widest uppercase mb-1">
                 CURRENT PERFORMANCE RATE / 現在の性能稼働率
             </p>
             <div class="flex items-baseline justify-center">
-                <span class="font-mono text-8xl font-black text-emerald-400 tracking-tighter" id="perf-rate">100.0</span>
+                <span class="font-mono text-8xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]" id="perf-rate">100.0</span>
                 <span class="text-3xl text-emerald-400 font-black ml-1">%</span>
             </div>
-            <div class="absolute right-4 top-4 flex items-center gap-1 bg-slate-900/80 px-3 py-1 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
+            <div class="absolute right-4 top-4 flex items-center gap-1 bg-slate-950/80 px-3 py-1 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
                 <i class="fa-solid fa-calculator text-emerald-400"></i>
                 <span>(標準サイクルタイム × 加工数) ÷ 総稼働時間</span>
             </div>
         </div>
 
-        <!-- メイングリッド (左:SPM、中央:タイムクロック、右:目標・実績加工数) -->
+        <!-- メイングリッド (左:SPM、中央:タイムクロック、右:目標・実績加工数をコンパクトに) -->
         <div class="grid grid-cols-12 gap-3 flex-1 overflow-hidden">
             
-            <!-- 左側：キーボード入力設定エリア (Standard vs Actual) -->
+            <!-- 左側：キーボード入力設定エリア (Standard vs Actual) (幅: col-span-3) -->
             <div class="col-span-3 flex flex-col gap-3 h-full">
                 <!-- 標準SPM -->
                 <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
@@ -137,8 +128,8 @@
                         <i class="fa-solid fa-gauge-simple-high text-slate-400"></i>
                         <span>Standard SPM / 理想値（標準能力）</span>
                     </p>
-                    <p class="text-[10px] text-slate-500 mb-2 leading-tight">
-                        標準書や型仕様に規定された理論上の最高スピード(分あたり)
+                    <p class="text-[9px] text-slate-500 mb-2 leading-tight">
+                        標準書や仕様に規定された理論上の最高スピード(分あたり)
                     </p>
                     <div class="relative mt-auto">
                         <input type="number" id="std-spm" value="15.0" step="0.1" min="0.1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
@@ -152,8 +143,8 @@
                         <i class="fa-solid fa-bolt text-emerald-400"></i>
                         <span>Actual SPM / 実態値（今の設定）</span>
                     </p>
-                    <p class="text-[10px] text-slate-400/80 mb-2 leading-tight">
-                        現在の金型状況等を踏まえ、実際にプレス機にセットした回転数
+                    <p class="text-[9px] text-slate-400/80 mb-2 leading-tight">
+                        金型状況等を踏まえ、実際にプレス機に設定している回転数
                     </p>
                     <div class="relative mt-auto">
                         <input type="number" id="act-spm" value="15.0" step="0.1" min="0" class="bg-slate-950 border-2 border-emerald-600 focus:border-emerald-400 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
@@ -162,12 +153,18 @@
                 </div>
             </div>
 
-            <!-- 中央：タイムクロック ＆ ロス時間内訳 -->
-            <div class="col-span-5 bg-slate-950 border-2 border-slate-800 rounded-2xl p-4 flex flex-col justify-between items-center h-full">
-                <!-- 始業・終業時間表示 -->
-                <div class="w-full flex justify-between bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
-                    <div class="text-slate-400">始業: <span id="time-start-label" class="font-mono text-white font-bold">未記録</span></div>
-                    <div class="text-slate-400">終業: <span id="time-end-label" class="font-mono text-white font-bold">未記録</span></div>
+            <!-- 中央：タイムクロック ＆ ロス時間内訳 (幅: col-span-6 へ拡張し見やすく配置) -->
+            <div class="col-span-6 bg-slate-950 border-2 border-slate-800 rounded-2xl p-4 flex flex-col justify-between items-center h-full">
+                <!-- 始業・終業時間表示 (大型化してクッキリと常時表示) -->
+                <div class="w-full grid grid-cols-2 gap-3 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5">
+                    <div class="text-left">
+                        <p class="text-[10px] text-slate-400 font-black tracking-wider">START TIME / 始業時刻</p>
+                        <p id="time-start-label" class="font-mono text-lg text-emerald-400 font-black">未記録</p>
+                    </div>
+                    <div class="text-right border-l border-slate-800 pl-3">
+                        <p class="text-[10px] text-slate-400 font-black tracking-wider">END TIME / 終業時刻</p>
+                        <p id="time-end-label" class="font-mono text-lg text-rose-400 font-black">未記録</p>
+                    </div>
                 </div>
 
                 <!-- 稼働中タイマー -->
@@ -175,7 +172,7 @@
                     <p class="text-[11px] font-black text-slate-500 tracking-widest mb-1">
                         RUNNING TIME / 稼働経過時間
                     </p>
-                    <div class="font-mono text-5xl sm:text-6xl text-white tracking-widest font-black leading-none" id="main-clock">
+                    <div class="font-mono text-6xl text-white tracking-widest font-black leading-none" id="main-clock">
                         00:00:00
                     </div>
                     <div class="text-xs font-bold text-slate-500 mt-2" id="clock-sub">
@@ -200,19 +197,16 @@
                 </div>
             </div>
 
-            <!-- 右側：目標数・自動集計加工数 -->
-            <div class="col-span-4 flex flex-col gap-3 h-full">
+            <!-- 右側：目標数・自動集計加工数 (幅: col-span-3 へコンパクトに縮小) -->
+            <div class="col-span-3 flex flex-col gap-3 h-full">
                 <!-- 本日の目標数入力 -->
                 <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
                     <p class="text-[11px] font-black text-slate-400 mb-1 flex items-center gap-1">
                         <i class="fa-solid fa-bullseye text-slate-400"></i>
-                        <span>Target / 本日の目標加工数</span>
-                    </p>
-                    <p class="text-[10px] text-slate-500 mb-2 leading-tight">
-                        本日このシフトで生産完了すべき目標総数
+                        <span>Target / 目標数設定</span>
                     </p>
                     <div class="relative mt-auto">
-                        <input type="number" id="target-count" value="1200" min="1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
+                        <input type="number" id="target-count" value="1200" min="1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-2xl text-center focus:outline-none transition-colors">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">pcs</span>
                     </div>
                 </div>
@@ -220,12 +214,12 @@
                 <!-- 自動集計の実績生産数 -->
                 <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center items-center flex-[1.5]">
                     <p class="text-[11px] font-black text-slate-400 mb-1 tracking-wider uppercase">
-                        Accumulated / 自動集計 加工数
+                        Accumulated / 自動集計
                     </p>
-                    <p class="text-[10px] text-slate-500 mb-3 text-center leading-tight">
-                        「稼働中」の経過時間と「実態SPM」より1秒毎に正確に積算
+                    <p class="text-[9px] text-slate-500 mb-2 text-center leading-tight">
+                        稼働秒数×実績SPMから自動積算
                     </p>
-                    <div class="font-mono text-5xl font-black text-white leading-none mb-1" id="total-count">
+                    <div class="font-mono text-4xl font-black text-white leading-none mb-1" id="total-count">
                         0
                     </div>
                     <div class="text-xs text-slate-400 font-bold mt-2">
@@ -242,10 +236,20 @@
     <div id="view-history" class="hidden flex-1 flex flex-col gap-3 fade-in overflow-hidden">
         <div class="bg-slate-850 border border-slate-800 rounded-2xl p-4 flex-1 flex flex-col gap-3 overflow-hidden">
             <div class="flex justify-between items-center">
-                <h2 class="text-base font-black text-emerald-400 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check"></i>
-                    <span>保存済み日報履歴データ</span>
-                </h2>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-base font-black text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>保存済み日報履歴データ</span>
+                    </h2>
+                    
+                    <!-- 宛先アドレス設定 (作業日報ページで設定できるように移設) -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>日報報告先メール:</span>
+                        <input type="email" id="report-email" value="factory-report@example.com" class="bg-transparent border-none text-emerald-400 font-bold focus:outline-none w-[180px]" title="終業報告の送信先メールアドレス">
+                    </div>
+                </div>
+
                 <button class="bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 active:scale-95 transition-all" onclick="exportFullHistoryToCSV()">
                     <i class="fa-solid fa-file-excel"></i>
                     <span>全履歴をエクセル(CSV)保存</span>
@@ -261,7 +265,7 @@
                             <th class="p-3 font-bold text-emerald-400">始業</th>
                             <th class="p-3 font-bold text-rose-400">終業</th>
                             <th class="p-3 font-bold">標準SPM</th>
-                            <th class="p-3 font-bold">実態SPM</th>
+                            <th class="p-3 font-bold">実績SPM</th>
                             <th class="p-3 font-bold">加工数</th>
                             <th class="p-3 font-bold">稼働時間</th>
                             <th class="p-3 font-bold text-amber-500">金型交換</th>
@@ -272,48 +276,49 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-900" id="history-body">
-                        <!-- ここにJavaScriptで動的に行が追加されます -->
+                        <!-- JavaScriptで動的に追加されます -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- 3. 最下部：始業・終業コントロール ＆ ステータス切り替え巨大ボタン -->
+    <!-- 3. 最下部：始業・終業コントロール(控えめ) ＆ ステータス切り替え巨大ボタン(強調) -->
     <div class="grid grid-cols-12 gap-3 h-[120px] shrink-0 mt-auto z-20">
-        <!-- 始業・終業コントロール (12列中4列) -->
-        <div class="col-span-4 grid grid-rows-2 gap-2 h-full">
-            <button class="bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 border border-sky-400 rounded-xl text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-sky-950/20 active:scale-95 transition-all" onclick="startShift()" id="btn-start-shift">
-                <i class="fa-solid fa-play"></i>
+        
+        <!-- 始業・終業コントロール (控えめなダーク調、幅は col-span-3 にコンパクト化) -->
+        <div class="col-span-3 grid grid-rows-2 gap-2 h-full">
+            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95" onclick="startShift()" id="btn-start-shift">
+                <i class="fa-solid fa-play text-emerald-500"></i>
                 <span>始業開始</span>
             </button>
-            <button class="bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 border border-rose-500 rounded-xl text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-rose-950/20 active:scale-95 transition-all opacity-50 pointer-events-none" onclick="openEndShiftModal()" id="btn-end-shift">
-                <i class="fa-solid fa-flag-checkered"></i>
-                <span>終業（日報を保存）</span>
+            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all opacity-50 pointer-events-none" onclick="openEndShiftModal()" id="btn-end-shift">
+                <i class="fa-solid fa-flag-checkered text-rose-500"></i>
+                <span>終業(日報保存)</span>
             </button>
         </div>
 
-        <!-- 稼働ステータス切り替え (12列中8列) - 始業前はロックされます -->
-        <div class="col-span-8 grid grid-cols-4 gap-2 h-full">
+        <!-- 稼働ステータス切り替え (鮮やかな色、枠線、大文字、太字で極めて目立たせたボタン、幅: col-span-9) -->
+        <div class="col-span-9 grid grid-cols-4 gap-2.5 h-full">
             <!-- 稼働中ボタン / 稼働時は「一時停止」に切り替え -->
-            <button class="btn btn-running text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('RUNNING')" id="btn-RUNNING">
-                <i class="fa-solid fa-circle-play text-2xl" id="run-icon"></i>
-                <span class="text-sm font-bold" id="run-text">稼働中</span>
+            <button class="btn btn-running text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('RUNNING')" id="btn-RUNNING">
+                <i class="fa-solid fa-circle-play text-3xl" id="run-icon"></i>
+                <span class="text-sm font-black tracking-wider" id="run-text">稼働中</span>
             </button>
             <!-- 金型交換 -->
-            <button class="btn btn-mold text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('MOLD')" id="btn-MOLD">
-                <i class="fa-solid fa-arrows-rotate text-2xl"></i>
-                <span class="text-sm font-bold">金型交換</span>
+            <button class="btn btn-mold text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('MOLD')" id="btn-MOLD">
+                <i class="fa-solid fa-arrows-rotate text-3xl"></i>
+                <span class="text-sm font-black tracking-wider">金型交換</span>
             </button>
             <!-- 休憩・4S -->
-            <button class="btn btn-break text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('BREAK')" id="btn-BREAK">
-                <i class="fa-solid fa-coffee text-2xl"></i>
-                <span class="text-sm font-bold">休憩・4S</span>
+            <button class="btn btn-break text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('BREAK')" id="btn-BREAK">
+                <i class="fa-solid fa-coffee text-3xl"></i>
+                <span class="text-sm font-black tracking-wider">休憩・4S</span>
             </button>
             <!-- 異常停止 -->
-            <button class="btn btn-stop text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('STOP')" id="btn-STOP">
-                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-                <span class="text-sm font-bold">異常停止</span>
+            <button class="btn btn-stop text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('STOP')" id="btn-STOP">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                <span class="text-sm font-black tracking-wider">異常停止</span>
             </button>
         </div>
     </div>
@@ -363,7 +368,7 @@
         INITIAL_STANDARD_SPM: 15.0,    // 標準SPMの初期値
         INITIAL_TARGET_COUNT: 1200,    // 目標数の初期値
         RESET_TIMEOUT_MS: 5000,        // リセットボタンが通常状態に戻る猶予時間
-        LOCAL_STORAGE_KEY: 'press_viz_logs_v2.3', // 過去ログの保存先キー名
+        LOCAL_STORAGE_KEY: 'press_viz_logs_v2.4', // 過去ログの保存先キー名
         PERFORMANCE_GOOD_LIMIT: 95,    // 稼働率グリーン（良好）の閾値(%)
         PERFORMANCE_NORMAL_LIMIT: 85,  // 稼働率イエロー（警告）の閾値(%)
     };
@@ -574,13 +579,14 @@
     // ==========================================
     //   6. 始業・終業フロー処理
     // ==========================================
-    // 「始業開始」ボタン押下
+    // 「始業開始」ボタン押下 (始業と稼働計測を切り分け)
     function startShift() {
         if (state.isShiftActive) return;
 
         state.isShiftActive = true;
         state.startTime = new Date();
         
+        // 画面上に始業時刻を常時表示
         timeStartLabel.innerText = state.startTime.toTimeString().split(' ')[0];
         timeEndLabel.innerText = "稼働中...";
 
@@ -591,12 +597,13 @@
         // 各種状態切り替えボタンをロック解除（半透明解除、タップ可能）
         document.querySelectorAll('.btn').forEach(b => {
             b.classList.remove('pointer-events-none');
-            b.style.opacity = '0.4';
+            b.style.opacity = '1'; // ビビッドに際立たせる
         });
 
-        // 始業と同時に、自動的に「生産中（稼働中）」ステータスに移行
-        setStatus('RUNNING');
-        showToast("始業時間を記録しました。自動で測定を開始します。");
+        // 始業開始時は「待機中」とし、自動でRUNNINGには移行しない
+        setStatus('IDLE');
+        clockSub.innerText = 'READY / 稼働開始ボタンを押してください';
+        showToast("始業時間を記録しました。下の「稼働中」を押すと計測が始まります。");
     }
 
     // 終業確認モーダルを開く
@@ -684,7 +691,7 @@
         triggerAutoEmail(record);
     }
 
-    // メールアプリの起動
+    // メールアプリの起動 (指定の報告先アドレスを読込)
     function triggerAutoEmail(rec) {
         const emailAddress = document.getElementById('report-email').value || 'report@example.com';
         const subject = encodeURIComponent(`【プレス日報】実績報告_${rec.date}_${rec.start}〜${rec.end}`);
@@ -694,16 +701,16 @@
             `----------------------------------------\n` +
             `■ 本日の日報実績概要\n` +
             `----------------------------------------\n` +
-            `・日付: ${rec.date}\n` +
-            `・稼働時間帯: ${rec.start} 〜 ${rec.end}\n` +
-            `・標準SPM (標準): ${rec.standardSPM}\n` +
-            `・実態SPM (設定値): ${rec.actualSPM}\n` +
-            `・自動集計加工数: ${rec.count} pcs\n` +
-            `・正味生産稼働時間: ${rec.running}\n` +
-            `・金型段取交換時間: ${rec.mold}\n` +
-            `・休憩・4S時間: ${rec.break}\n` +
-            `・異常トラブル停止: ${rec.stop}\n` +
-            `・性能稼働率実績: ${rec.perfRate}%\n` +
+            `• 日付: ${rec.date}\n` +
+            `• 稼働時間帯: ${rec.start} 〜 ${rec.end}\n` +
+            `• 標準SPM (標準): ${rec.standardSPM}\n` +
+            `• 実態SPM (設定値): ${rec.actualSPM}\n` +
+            `• 自動集計加工数: ${rec.count} pcs\n` +
+            `• 正味生産稼働時間: ${rec.running}\n` +
+            `• 金型段取交換時間: ${rec.mold}\n` +
+            `• 休憩・4S時間: ${rec.break}\n` +
+            `• 異常トラブル停止: ${rec.stop}\n` +
+            `• 性能稼働率実績: ${rec.perfRate}%\n` +
             `----------------------------------------\n\n` +
             `※こちらのメールはiPadから自動作成されています。\n` +
             `送信ボタンを押すだけで日報完了となります。`;
