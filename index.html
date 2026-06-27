@@ -33,18 +33,33 @@
     <style>
         * {
             user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 通常ボタンの基本スタイル */
+        .btn {
+            opacity: 0.4;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn.active {
+            opacity: 1 !important;
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.4);
+        }
+
         /* 各ボタンの色分け */
         .btn-running { background: #059669; border: 3px solid #34d399; }
         .btn-mold { background: #d97706; border: 3px solid #fbbf24; }
         .btn-break { background: #2563eb; border: 3px solid #60a5fa; }
         .btn-stop { background: #dc2626; border: 3px solid #f87171; }
 
-        /* 稼働中・一時停止ボタンの特別巨大化 ＆ 視認性極大化スタイル */
+        /* 稼働中・一時停止ボタンのみ特別巨大化 ＆ 視認性極大化スタイル */
         .btn-running, .btn-pause {
             grid-column: span 1;
             font-size: 26px !important; /* テキストサイズを大幅にアップ */
             box-shadow: 0 0 30px rgba(16, 185, 129, 0.45) !important; /* 発光グロー効果 */
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            opacity: 0.4;
         }
         
         /* 一時停止に切り替わった際も、落ち着きつつしっかりと光らせる */
@@ -159,11 +174,11 @@
                 <div class="w-full grid grid-cols-2 gap-3 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5">
                     <div class="text-left">
                         <p class="text-[10px] text-slate-400 font-black tracking-wider">START TIME / 始業時刻</p>
-                        <p id="time-start-label" class="font-mono text-lg text-emerald-400 font-black">未記録</p>
+                        <p id="time-start-label" class="font-mono text-xl text-emerald-400 font-black">未記録</p>
                     </div>
                     <div class="text-right border-l border-slate-800 pl-3">
                         <p class="text-[10px] text-slate-400 font-black tracking-wider">END TIME / 終業時刻</p>
-                        <p id="time-end-label" class="font-mono text-lg text-rose-400 font-black">未記録</p>
+                        <p id="time-end-label" class="font-mono text-xl text-rose-400 font-black">未記録</p>
                     </div>
                 </div>
 
@@ -283,22 +298,22 @@
         </div>
     </div>
 
-    <!-- 3. 最下部：始業・終業コントロール(控えめ) ＆ ステータス切り替え巨大ボタン(強調) -->
+    <!-- 3. 最下部：始業・終業コントロール ＆ ステータス切り替え巨大ボタン -->
     <div class="grid grid-cols-12 gap-3 h-[120px] shrink-0 mt-auto z-20">
         
         <!-- 始業・終業コントロール (控えめなダーク調、幅は col-span-3 にコンパクト化) -->
         <div class="col-span-3 grid grid-rows-2 gap-2 h-full">
-            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95" onclick="startShift()" id="btn-start-shift">
+            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95" onclick="startShift()" id="btn-start-shift">
                 <i class="fa-solid fa-play text-emerald-500"></i>
                 <span>始業開始</span>
             </button>
-            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all opacity-50 pointer-events-none" onclick="openEndShiftModal()" id="btn-end-shift">
+            <button class="bg-slate-800 border border-slate-700 hover:bg-slate-750 rounded-xl text-slate-300 font-bold text-sm flex items-center justify-center gap-1.5 transition-all opacity-50 pointer-events-none" onclick="openEndShiftModal()" id="btn-end-shift">
                 <i class="fa-solid fa-flag-checkered text-rose-500"></i>
                 <span>終業(日報保存)</span>
             </button>
         </div>
 
-        <!-- 稼働ステータス切り替え (鮮やかな色、枠線、大文字、太字で極めて目立たせたボタン、幅: col-span-9) -->
+        <!-- 稼働ステータス切り替え (稼働中のみ超強調、他3つは標準サイズ・少し控えめ) -->
         <div class="col-span-9 grid grid-cols-4 gap-2.5 h-full">
             <!-- 稼働中ボタン / 稼働時は「一時停止」に切り替え -->
             <button class="btn btn-running text-white rounded-2xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('RUNNING')" id="btn-RUNNING">
@@ -306,18 +321,18 @@
                 <span class="text-xl font-black tracking-widest" id="run-text">稼働中</span>
             </button>
             <!-- 金型交換 -->
-            <button class="btn btn-mold text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('MOLD')" id="btn-MOLD">
-                <i class="fa-solid fa-arrows-rotate text-3xl"></i>
+            <button class="btn btn-mold text-white rounded-2xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('MOLD')" id="btn-MOLD">
+                <i class="fa-solid fa-arrows-rotate text-2xl mb-1"></i>
                 <span class="text-sm font-black tracking-wider">金型交換</span>
             </button>
             <!-- 休憩・4S -->
-            <button class="btn btn-break text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('BREAK')" id="btn-BREAK">
-                <i class="fa-solid fa-coffee text-3xl"></i>
+            <button class="btn btn-break text-white rounded-2xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('BREAK')" id="btn-BREAK">
+                <i class="fa-solid fa-coffee text-2xl mb-1"></i>
                 <span class="text-sm font-black tracking-wider">休憩・4S</span>
             </button>
             <!-- 異常停止 -->
-            <button class="btn btn-stop text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('STOP')" id="btn-STOP">
-                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+            <button class="btn btn-stop text-white rounded-2xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('STOP')" id="btn-STOP">
+                <i class="fa-solid fa-triangle-exclamation text-2xl mb-1"></i>
                 <span class="text-sm font-black tracking-wider">異常停止</span>
             </button>
         </div>
@@ -831,8 +846,8 @@
             rateBox.classList.remove('active');
             
             // 稼働ボタン表示を「稼働中（再生）」に戻す
-            runBtn.className = 'btn btn-running';
-            runIcon.className = 'fa-solid fa-play';
+            runBtn.className = 'btn btn-running active';
+            runIcon.className = 'fa-solid fa-circle-play text-5xl';
             runText.innerText = '稼働中';
             return;
         }
@@ -865,7 +880,7 @@
                 
                 // 再生中はボタンを「一時停止」の見た目に変更
                 runBtn.className = 'btn btn-pause active';
-                runIcon.className = 'fa-solid fa-pause';
+                runIcon.className = 'fa-solid fa-circle-pause text-5xl';
                 runText.innerText = '一時停止';
             } else {
                 clockSub.innerText = 'INDIRECT WORK / 非稼働';
@@ -879,7 +894,7 @@
 
     function resetRunButton() {
         runBtn.className = 'btn btn-running';
-        runIcon.className = 'fa-solid fa-play';
+        runIcon.className = 'fa-solid fa-circle-play text-5xl';
         runText.innerText = '稼働中';
     }
 
