@@ -118,20 +118,20 @@
         <!-- セーフティリセット、現在のステータス -->
         <div class="flex items-center gap-3">
             <!-- セーフティリセットボタン (2段階確認式) -->
-            <button class="bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all active:scale-95" id="btn-reset" onclick="triggerReset()">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span id="reset-text">データクリア</span>
-            </button>
-            <div class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300 transition-all" id="current-status-label">待機中</div>
-            <div id="live-time" class="text-slate-400 text-xs font-mono font-bold">12:00:00</div>
+    <!-- 1. 性能稼働率パネル (コンパクトに高さを抑えつつ、パーセントを最大強調) -->
+    <div class="bg-gradient-to-b from-slate-900 to-slate-850 border-4 border-emerald-500/80 rounded-2xl p-3 flex justify-between items-center relative transition-all shadow-lg shadow-emerald-950/20 flex-[0.9]" id="rate-box">
+        <!-- 左側：現在のステータス表示 (新規追加) -->
+        <div class="flex flex-col justify-center pl-4 border-r-2 border-slate-800/80 h-full pr-8 shrink-0">
+            <p class="text-[10px] font-black text-slate-500 tracking-widest uppercase mb-1">
+                CURRENT STATUS / 現在の状況
+            </p>
+            <div id="big-status-text" class="text-3xl sm:text-4xl font-black text-slate-400 tracking-wider transition-all duration-300">
+                待機中
+            </div>
         </div>
-    </div>
 
-    <!-- ビューA: 稼働モニター (ダッシュボード) -->
-    <div id="view-dashboard" class="flex-1 flex flex-col gap-3 fade-in">
-        
-        <!-- 性能稼働率パネル (コンパクトに高さを抑えつつ、パーセントを最大強調) -->
-        <div class="bg-gradient-to-b from-slate-900 to-slate-850 border-4 border-emerald-500/80 rounded-2xl p-3 flex flex-col justify-center items-center relative transition-all shadow-lg shadow-emerald-950/20 flex-[0.9]" id="rate-box">
+        <!-- 右側：性能稼働率表示 -->
+        <div class="flex-grow flex flex-col justify-center items-center">
             <p class="text-xs font-black text-emerald-400 tracking-widest uppercase mb-0.5">
                 CURRENT PERFORMANCE RATE / 現在の性能稼働率
             </p>
@@ -139,13 +139,14 @@
                 <span class="font-mono text-7xl sm:text-8xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]" id="perf-rate">100.0</span>
                 <span class="text-4xl sm:text-5xl text-emerald-400 font-black ml-1.5">%</span>
             </div>
-            <div class="absolute right-4 top-3 flex items-center gap-1 bg-slate-950/80 px-3 py-1 rounded-full border border-slate-700 text-[9px] font-bold text-slate-400">
-                <i class="fa-solid fa-calculator text-emerald-400"></i>
-                <span>(標準サイクルタイム × 加工数) ÷ 総稼働時間</span>
-            </div>
         </div>
+        <div class="absolute right-4 top-3 flex items-center gap-1 bg-slate-950/80 px-3 py-1 rounded-full border border-slate-700 text-[9px] font-bold text-slate-400">
+            <i class="fa-solid fa-calculator text-emerald-400"></i>
+            <span>(標準サイクルタイム × 加工数) ÷ 総稼働時間</span>
+        </div>
+    </div>
 
-        <!-- メイングリッド (左:SPM、中央:タイムクロック、右:目標・実績加工数をコンパクトに) -->
+    <!-- メイングリッド (左:SPM、中央:タイムクロック、右:目標・実績加工数をコンパクトに) -->
         <div class="grid grid-cols-12 gap-3 flex-grow flex-[1.2] overflow-hidden">
             
             <!-- 左側：キーボード入力設定エリア (Standard vs Actual) (幅: col-span-3) -->
@@ -442,6 +443,8 @@
     const timeBreakEl = document.getElementById('time-break');
     const timeStopEl = document.getElementById('time-stop');
     
+    const bigStatusText = document.getElementById('big-status-text');
+    
     // 操作ボタン
     const runBtn = document.getElementById('btn-RUNNING');
     const runIcon = document.getElementById('run-icon');
@@ -503,6 +506,12 @@
     }
     document.addEventListener('click', requestWakeLock);
     document.addEventListener('touchstart', requestWakeLock);
+
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+            await requestWakeLock();
+        }
+    });
 
     // ==========================================
     //   5. リアルタイム時間＆数値連動処理
@@ -858,6 +867,10 @@
             clockSub.classList.remove('running');
             rateBox.classList.remove('active');
             
+            // 性能稼働率の左側ステータスも更新
+            bigStatusText.innerText = '一時停止中';
+            bigStatusText.className = 'text-2xl sm:text-3xl font-black text-slate-400 tracking-wider transition-all duration-300';
+            
             // 稼働ボタン表示を「稼働中（再生）」に戻す
             runBtn.className = 'btn btn-running active';
             runIcon.className = 'fa-solid fa-circle-play text-4xl sm:text-5xl';
@@ -871,6 +884,9 @@
             clockSub.innerText = 'PAUSED / 停止中';
             clockSub.classList.remove('running');
             rateBox.classList.remove('active');
+            
+            bigStatusText.innerText = '待機中';
+            bigStatusText.className = 'text-3xl sm:text-4xl font-black text-slate-400 tracking-wider transition-all duration-300';
             
             resetRunButton();
         } else {
@@ -886,7 +902,11 @@
             statusLabel.innerText = labels[newStatus];
             statusLabel.classList.add('status-' + newStatus);
             
+            // 性能稼働率の左側のステータス文字と色を切り替える
+            bigStatusText.innerText = labels[newStatus];
+            
             if (newStatus === 'RUNNING') {
+                bigStatusText.className = 'text-3xl sm:text-4xl font-black text-emerald-400 tracking-wider transition-all duration-300 drop-shadow-[0_0_15px_rgba(16,185,129,0.55)]';
                 clockSub.innerText = 'RUNNING NOW';
                 clockSub.classList.add('running');
                 rateBox.classList.add('active');
@@ -896,6 +916,13 @@
                 runIcon.className = 'fa-solid fa-circle-pause text-4xl sm:text-5xl';
                 runText.innerText = '一時停止';
             } else {
+                if (newStatus === 'MOLD') {
+                    bigStatusText.className = 'text-3xl sm:text-4xl font-black text-amber-400 tracking-wider transition-all duration-300 drop-shadow-[0_0_15px_rgba(245,158,11,0.55)]';
+                } else if (newStatus === 'BREAK') {
+                    bigStatusText.className = 'text-3xl sm:text-4xl font-black text-sky-400 tracking-wider transition-all duration-300 drop-shadow-[0_0_15px_rgba(56,189,248,0.55)]';
+                } else if (newStatus === 'STOP') {
+                    bigStatusText.className = 'text-3xl sm:text-4xl font-black text-rose-500 tracking-wider transition-all duration-300 drop-shadow-[0_0_15px_rgba(244,63,94,0.55)] animate-pulse';
+                }
                 clockSub.innerText = 'INDIRECT WORK / 非稼働';
                 clockSub.classList.remove('running');
                 rateBox.classList.remove('active');
@@ -955,6 +982,10 @@
         });
         statusLabel.className = 'status-indicator';
         statusLabel.innerText = '待機中';
+        
+        bigStatusText.innerText = '待機中';
+        bigStatusText.className = 'text-3xl sm:text-4xl font-black text-slate-400 tracking-wider transition-all duration-300';
+
         clockSub.innerText = 'READY / 始業ボタンを押してください';
         clockSub.classList.remove('running');
         rateBox.classList.remove('active');
