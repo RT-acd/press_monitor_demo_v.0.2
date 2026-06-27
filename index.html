@@ -33,30 +33,30 @@
     <style>
         * {
             user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
+        /* 各ボタンの色分け */
+        .btn-running { background: #059669; border: 3px solid #34d399; }
+        .btn-mold { background: #d97706; border: 3px solid #fbbf24; }
+        .btn-break { background: #2563eb; border: 3px solid #60a5fa; }
+        .btn-stop { background: #dc2626; border: 3px solid #f87171; }
+
+        /* 稼働中・一時停止ボタンの特別巨大化 ＆ 視認性極大化スタイル */
+        .btn-running, .btn-pause {
+            grid-column: span 1;
+            font-size: 26px !important; /* テキストサイズを大幅にアップ */
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.45) !important; /* 発光グロー効果 */
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
-        /* iPad 1画面にぴったり収めるための調整（スクロールバーを非表示） */
-        body {
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
+        
+        /* 一時停止に切り替わった際も、落ち着きつつしっかりと光らせる */
+        .btn-pause {
+            background: #475569 !important;
+            border: 3px solid #94a3b8 !important;
+            box-shadow: 0 0 30px rgba(148, 163, 184, 0.45) !important;
         }
-        /* スムーズなフェードイン効果 */
-        .fade-in {
-            animation: fadeIn 0.2s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* 稼働中ボタンの点滅パルス */
-        @keyframes custom-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .pulse-active {
-            animation: custom-pulse 1.5s infinite;
+
+        @keyframes blink { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.4; } 
         }
     </style>
 </head>
@@ -301,9 +301,9 @@
         <!-- 稼働ステータス切り替え (鮮やかな色、枠線、大文字、太字で極めて目立たせたボタン、幅: col-span-9) -->
         <div class="col-span-9 grid grid-cols-4 gap-2.5 h-full">
             <!-- 稼働中ボタン / 稼働時は「一時停止」に切り替え -->
-            <button class="btn btn-running text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('RUNNING')" id="btn-RUNNING">
-                <i class="fa-solid fa-circle-play text-3xl" id="run-icon"></i>
-                <span class="text-sm font-black tracking-wider" id="run-text">稼働中</span>
+            <button class="btn btn-running text-white rounded-2xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('RUNNING')" id="btn-RUNNING">
+                <i class="fa-solid fa-circle-play text-5xl" id="run-icon"></i>
+                <span class="text-xl font-black tracking-widest" id="run-text">稼働中</span>
             </button>
             <!-- 金型交換 -->
             <button class="btn btn-mold text-white rounded-2xl flex flex-col justify-center items-center gap-1.5 active:scale-95 transition-all pointer-events-none border-2 shadow-lg" onclick="setStatus('MOLD')" id="btn-MOLD">
