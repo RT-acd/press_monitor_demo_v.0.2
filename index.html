@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>プレス生産管理見える化 - iPad専用プロ版</title>
+    
+    <!-- 外部ライブラリの読み込み -->
+    <!-- Tailwind CSS (スタイリングを簡単にするフレームワーク) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (読みやすくモダンな日本語・数字フォント) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <!-- FontAwesome (アイコン素材集) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwindのカスタムカラー・フォント設定（保守性の向上） -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- アプリ全体のレイアウト調整用追加CSS -->
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        /* iPad 1画面にぴったり収めるための調整（スクロールバーを非表示） */
+        body {
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        /* スムーズなフェードイン効果 */
+        .fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 稼働中ボタンの点滅パルス */
+        @keyframes custom-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .pulse-active {
+            animation: custom-pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 flex items-center justify-center p-2 sm:p-4">
+
+<!-- iPadアスペクト比にフィットする頑丈なメインコンテナ -->
+<div class="w-full max-w-[1180px] h-full max-h-[820px] bg-slate-900 border-4 border-slate-800 rounded-[28px] shadow-2xl p-4 flex flex-col gap-3 relative overflow-hidden">
+    
+    <!-- 共通ヘッダー -->
+    <div class="flex justify-between items-center border-b-2 border-slate-800 pb-3 z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-500/20 p-2 rounded-xl text-emerald-400">
+                <i class="fa-solid fa-industry text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-black text-white tracking-wider flex items-center gap-2">
+                    PRESS MONITOR PRO
+                </h1>
+                <p class="text-[10px] text-slate-400 font-bold">iPad 1画面・自動性能稼働率見える化</p>
+            </div>
+        </div>
+        
+        <!-- ビュー切り替え（ダッシュボード／履歴一覧）のタブ -->
+        <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex gap-1">
+            <button id="tab-dashboard" onclick="switchView('dashboard')" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-white bg-slate-800 shadow">
+                <i class="fa-solid fa-gauge-high mr-1"></i>稼働モニター
+            </button>
+            <button id="tab-history" onclick="switchView('history')" class="px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white">
+                <i class="fa-solid fa-list-check mr-1"></i>作業日報・履歴
+            </button>
+        </div>
+        
+        <!-- 管理設定、リセット、現在のステータス -->
+        <div class="flex items-center gap-3">
+            <!-- 宛先アドレス設定 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-envelope"></i>
+                <span>報告先:</span>
+                <input type="email" id="report-email" value="factory-report@example.com" class="bg-transparent border-none text-emerald-400 font-bold focus:outline-none w-[160px]" title="終業報告の送信先メールアドレス">
+            </div>
+
+            <!-- セーフティリセットボタン (2段階確認式) -->
+            <button class="bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all active:scale-95" id="btn-reset" onclick="triggerReset()">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span id="reset-text">データクリア</span>
+            </button>
+            <div class="px-3 py-1.5 rounded-full text-xs font-bold bg-slate-800 border border-slate-700 text-slate-300 transition-all" id="current-status-label">待機中</div>
+            <div id="live-time" class="text-slate-400 text-xs font-mono font-bold">12:00:00</div>
+        </div>
+    </div>
+
+    <!-- ビューA: 稼働モニター (ダッシュボード) -->
+    <div id="view-dashboard" class="flex-1 flex flex-col gap-3 fade-in">
+        
+        <!-- 性能稼働率パネル (最上部に巨大配置) -->
+        <div class="bg-slate-800 border-3 border-slate-700 rounded-2xl p-4 flex flex-col justify-center items-center relative transition-all" id="rate-box">
+            <p class="text-xs font-black text-slate-400 tracking-widest uppercase mb-1">
+                CURRENT PERFORMANCE RATE / 現在の性能稼働率
+            </p>
+            <div class="flex items-baseline justify-center">
+                <span class="font-mono text-8xl font-black text-emerald-400 tracking-tighter" id="perf-rate">100.0</span>
+                <span class="text-3xl text-emerald-400 font-black ml-1">%</span>
+            </div>
+            <div class="absolute right-4 top-4 flex items-center gap-1 bg-slate-900/80 px-3 py-1 rounded-full border border-slate-700 text-[10px] font-bold text-slate-400">
+                <i class="fa-solid fa-calculator text-emerald-400"></i>
+                <span>(標準サイクルタイム × 加工数) ÷ 総稼働時間</span>
+            </div>
+        </div>
+
+        <!-- メイングリッド (左:SPM、中央:タイムクロック、右:目標・実績加工数) -->
+        <div class="grid grid-cols-12 gap-3 flex-1 overflow-hidden">
+            
+            <!-- 左側：キーボード入力設定エリア (Standard vs Actual) -->
+            <div class="col-span-3 flex flex-col gap-3 h-full">
+                <!-- 標準SPM -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
+                    <p class="text-[11px] font-black text-slate-400 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-gauge-simple-high text-slate-400"></i>
+                        <span>Standard SPM / 理想値（標準能力）</span>
+                    </p>
+                    <p class="text-[10px] text-slate-500 mb-2 leading-tight">
+                        標準書や型仕様に規定された理論上の最高スピード(分あたり)
+                    </p>
+                    <div class="relative mt-auto">
+                        <input type="number" id="std-spm" value="15.0" step="0.1" min="0.1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">SPM</span>
+                    </div>
+                </div>
+                
+                <!-- 実績SPM -->
+                <div class="bg-slate-800 border-2 border-emerald-500/50 rounded-2xl p-3 flex flex-col justify-center flex-1">
+                    <p class="text-[11px] font-black text-emerald-400 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-bolt text-emerald-400"></i>
+                        <span>Actual SPM / 実態値（今の設定）</span>
+                    </p>
+                    <p class="text-[10px] text-slate-400/80 mb-2 leading-tight">
+                        現在の金型状況等を踏まえ、実際にプレス機にセットした回転数
+                    </p>
+                    <div class="relative mt-auto">
+                        <input type="number" id="act-spm" value="15.0" step="0.1" min="0" class="bg-slate-950 border-2 border-emerald-600 focus:border-emerald-400 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">SPM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中央：タイムクロック ＆ ロス時間内訳 -->
+            <div class="col-span-5 bg-slate-950 border-2 border-slate-800 rounded-2xl p-4 flex flex-col justify-between items-center h-full">
+                <!-- 始業・終業時間表示 -->
+                <div class="w-full flex justify-between bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs">
+                    <div class="text-slate-400">始業: <span id="time-start-label" class="font-mono text-white font-bold">未記録</span></div>
+                    <div class="text-slate-400">終業: <span id="time-end-label" class="font-mono text-white font-bold">未記録</span></div>
+                </div>
+
+                <!-- 稼働中タイマー -->
+                <div class="text-center my-auto flex flex-col justify-center items-center">
+                    <p class="text-[11px] font-black text-slate-500 tracking-widest mb-1">
+                        RUNNING TIME / 稼働経過時間
+                    </p>
+                    <div class="font-mono text-5xl sm:text-6xl text-white tracking-widest font-black leading-none" id="main-clock">
+                        00:00:00
+                    </div>
+                    <div class="text-xs font-bold text-slate-500 mt-2" id="clock-sub">
+                        READY / 始業ボタンを押してください
+                    </div>
+                </div>
+
+                <!-- 各種非稼働の内訳タイマー -->
+                <div class="w-full grid grid-cols-3 gap-2 border-t border-slate-900 pt-3">
+                    <div class="text-center bg-slate-900/50 p-1.5 rounded-xl border border-slate-900">
+                        <p class="text-[10px] text-amber-500 font-bold mb-0.5"><i class="fa-solid fa-arrows-rotate mr-1"></i>金型交換</p>
+                        <p class="font-mono text-sm text-white font-bold" id="time-mold">00:00:00</p>
+                    </div>
+                    <div class="text-center bg-slate-900/50 p-1.5 rounded-xl border border-slate-900">
+                        <p class="text-[10px] text-sky-400 font-bold mb-0.5"><i class="fa-solid fa-coffee mr-1"></i>休憩・4S</p>
+                        <p class="font-mono text-sm text-white font-bold" id="time-break">00:00:00</p>
+                    </div>
+                    <div class="text-center bg-slate-900/50 p-1.5 rounded-xl border border-slate-900">
+                        <p class="text-[10px] text-rose-500 font-bold mb-0.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i>異常停止</p>
+                        <p class="font-mono text-sm text-white font-bold" id="time-stop">00:00:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：目標数・自動集計加工数 -->
+            <div class="col-span-4 flex flex-col gap-3 h-full">
+                <!-- 本日の目標数入力 -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center flex-1">
+                    <p class="text-[11px] font-black text-slate-400 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-bullseye text-slate-400"></i>
+                        <span>Target / 本日の目標加工数</span>
+                    </p>
+                    <p class="text-[10px] text-slate-500 mb-2 leading-tight">
+                        本日このシフトで生産完了すべき目標総数
+                    </p>
+                    <div class="relative mt-auto">
+                        <input type="number" id="target-count" value="1200" min="1" class="bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-xl w-full p-2 text-white font-mono text-3xl text-center focus:outline-none transition-colors">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs font-mono">pcs</span>
+                    </div>
+                </div>
+
+                <!-- 自動集計の実績生産数 -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex flex-col justify-center items-center flex-[1.5]">
+                    <p class="text-[11px] font-black text-slate-400 mb-1 tracking-wider uppercase">
+                        Accumulated / 自動集計 加工数
+                    </p>
+                    <p class="text-[10px] text-slate-500 mb-3 text-center leading-tight">
+                        「稼働中」の経過時間と「実態SPM」より1秒毎に正確に積算
+                    </p>
+                    <div class="font-mono text-5xl font-black text-white leading-none mb-1" id="total-count">
+                        0
+                    </div>
+                    <div class="text-xs text-slate-400 font-bold mt-2">
+                        目標: <span id="target-val" class="font-mono text-white font-black">1,200</span> pcs
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ビューB: 日報・履歴一覧 -->
+    <div id="view-history" class="hidden flex-1 flex flex-col gap-3 fade-in overflow-hidden">
+        <div class="bg-slate-850 border border-slate-800 rounded-2xl p-4 flex-1 flex flex-col gap-3 overflow-hidden">
+            <div class="flex justify-between items-center">
+                <h2 class="text-base font-black text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>保存済み日報履歴データ</span>
+                </h2>
+                <button class="bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border border-emerald-600 px-4 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 active:scale-95 transition-all" onclick="exportFullHistoryToCSV()">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>全履歴をエクセル(CSV)保存</span>
+                </button>
+            </div>
+            
+            <!-- スクロール可能なテーブルコンテナ -->
+            <div class="flex-1 overflow-auto rounded-xl border border-slate-800 bg-slate-950">
+                <table class="w-full text-left text-xs border-collapse" id="history-table">
+                    <thead>
+                        <tr class="bg-slate-900 text-slate-400 border-b border-slate-800 sticky top-0">
+                            <th class="p-3 font-bold">日付</th>
+                            <th class="p-3 font-bold text-emerald-400">始業</th>
+                            <th class="p-3 font-bold text-rose-400">終業</th>
+                            <th class="p-3 font-bold">標準SPM</th>
+                            <th class="p-3 font-bold">実態SPM</th>
+                            <th class="p-3 font-bold">加工数</th>
+                            <th class="p-3 font-bold">稼働時間</th>
+                            <th class="p-3 font-bold text-amber-500">金型交換</th>
+                            <th class="p-3 font-bold text-sky-400">休憩時間</th>
+                            <th class="p-3 font-bold text-rose-500">異常停止</th>
+                            <th class="p-3 font-bold text-emerald-400 text-right">性能稼働率</th>
+                            <th class="p-3 font-bold text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-900" id="history-body">
+                        <!-- ここにJavaScriptで動的に行が追加されます -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 最下部：始業・終業コントロール ＆ ステータス切り替え巨大ボタン -->
+    <div class="grid grid-cols-12 gap-3 h-[120px] shrink-0 mt-auto z-20">
+        <!-- 始業・終業コントロール (12列中4列) -->
+        <div class="col-span-4 grid grid-rows-2 gap-2 h-full">
+            <button class="bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 border border-sky-400 rounded-xl text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-sky-950/20 active:scale-95 transition-all" onclick="startShift()" id="btn-start-shift">
+                <i class="fa-solid fa-play"></i>
+                <span>始業開始</span>
+            </button>
+            <button class="bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 border border-rose-500 rounded-xl text-white font-black text-base flex items-center justify-center gap-2 shadow-lg shadow-rose-950/20 active:scale-95 transition-all opacity-50 pointer-events-none" onclick="openEndShiftModal()" id="btn-end-shift">
+                <i class="fa-solid fa-flag-checkered"></i>
+                <span>終業（日報を保存）</span>
+            </button>
+        </div>
+
+        <!-- 稼働ステータス切り替え (12列中8列) - 始業前はロックされます -->
+        <div class="col-span-8 grid grid-cols-4 gap-2 h-full">
+            <!-- 稼働中ボタン / 稼働時は「一時停止」に切り替え -->
+            <button class="btn btn-running text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('RUNNING')" id="btn-RUNNING">
+                <i class="fa-solid fa-circle-play text-2xl" id="run-icon"></i>
+                <span class="text-sm font-bold" id="run-text">稼働中</span>
+            </button>
+            <!-- 金型交換 -->
+            <button class="btn btn-mold text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('MOLD')" id="btn-MOLD">
+                <i class="fa-solid fa-arrows-rotate text-2xl"></i>
+                <span class="text-sm font-bold">金型交換</span>
+            </button>
+            <!-- 休憩・4S -->
+            <button class="btn btn-break text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('BREAK')" id="btn-BREAK">
+                <i class="fa-solid fa-coffee text-2xl"></i>
+                <span class="text-sm font-bold">休憩・4S</span>
+            </button>
+            <!-- 異常停止 -->
+            <button class="btn btn-stop text-white rounded-xl flex flex-col justify-center items-center gap-1 active:scale-95 transition-all pointer-events-none" onclick="setStatus('STOP')" id="btn-STOP">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                <span class="text-sm font-bold">異常停止</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- 終業ダイアログ (カスタムモーダル) -->
+<div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex justify-center items-center opacity-0 pointer-events-none transition-all duration-200" id="end-shift-modal">
+    <div class="bg-slate-900 border-2 border-slate-700 w-[90%] max-w-[480px] p-6 rounded-2xl shadow-2xl text-center transform scale-95 transition-all duration-200" id="end-shift-modal-card">
+        <h3 class="text-xl font-black text-rose-400 flex items-center justify-center gap-2 mb-4">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>本日の生産を終了(終業)</span>
+        </h3>
+        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+            本日の生産実績データを確定して日報を保存します。<br>
+            現在の時刻で終業して、日報を作成しますか？
+        </p>
+        
+        <!-- 現在時間の表示領域 -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl py-3 text-3xl font-mono text-white font-bold mb-6" id="modal-end-time">
+            00:00:00
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl font-bold text-sm transition-all" onclick="closeEndShiftModal()">
+                戻る
+            </button>
+            <button class="bg-rose-600 hover:bg-rose-500 text-white py-3 rounded-xl font-black text-sm transition-all shadow-lg shadow-rose-950/30" onclick="confirmEndShift()">
+                はい、終業完了
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 画面上部への簡易トースト通知 -->
+<div class="fixed top-8 left-1/2 -translate-x-1/2 bg-emerald-600 border border-emerald-400 text-white px-6 py-3 rounded-full font-bold text-sm shadow-2xl flex items-center gap-2 transition-all opacity-0 pointer-events-none z-50" id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-text">始業時間を記録しました</span>
+</div>
+
+<!-- アプリケーションロジック -->
+<script>
+    // ==========================================
+    //   1. 保守用設定値 (ここを変えるだけで調整可能)
+    // ==========================================
+    const CONFIG = {
+        INITIAL_STANDARD_SPM: 15.0,    // 標準SPMの初期値
+        INITIAL_TARGET_COUNT: 1200,    // 目標数の初期値
+        RESET_TIMEOUT_MS: 5000,        // リセットボタンが通常状態に戻る猶予時間
+        LOCAL_STORAGE_KEY: 'press_viz_logs_v2.3', // 過去ログの保存先キー名
+        PERFORMANCE_GOOD_LIMIT: 95,    // 稼働率グリーン（良好）の閾値(%)
+        PERFORMANCE_NORMAL_LIMIT: 85,  // 稼働率イエロー（警告）の閾値(%)
+    };
+
+    // ==========================================
+    //   2. 稼働状況を保持する内部変数
+    // ==========================================
+    let state = {
+        isShiftActive: false, // 始業が押されているかどうか
+        status: 'IDLE',      // RUNNING, MOLD, BREAK, STOP, IDLE
+        startTime: null,     // 始業時間 (Dateオブジェクト)
+        endTime: null,       // 終業時間 (Dateオブジェクト)
+        
+        // 各種状態の秒カウンター
+        runningSeconds: 0,   // 生産(稼働中)
+        moldSeconds: 0,      // 金型交換
+        breakSeconds: 0,     // 休憩
+        stopSeconds: 0,      // 異常停止
+        
+        accumulatedCount: 0, // 自動集計加工数
+        standardSPM: CONFIG.INITIAL_STANDARD_SPM,
+        actualSPM: CONFIG.INITIAL_STANDARD_SPM,
+        targetCount: CONFIG.INITIAL_TARGET_COUNT
+    };
+
+    // 過去の作業ログリスト
+    let historyLogs = [];
+
+    // ==========================================
+    //   3. DOM要素キャッシュ (処理の高速化)
+    // ==========================================
+    const rateEl = document.getElementById('perf-rate');
+    const clockEl = document.getElementById('main-clock');
+    const countEl = document.getElementById('total-count');
+    const statusLabel = document.getElementById('current-status-label');
+    const clockSub = document.getElementById('clock-sub');
+    const rateBox = document.getElementById('rate-box');
+    const timeStartLabel = document.getElementById('time-start-label');
+    const timeEndLabel = document.getElementById('time-end-label');
+    
+    // ロス内訳
+    const timeMoldEl = document.getElementById('time-mold');
+    const timeBreakEl = document.getElementById('time-break');
+    const timeStopEl = document.getElementById('time-stop');
+    
+    // 操作ボタン
+    const runBtn = document.getElementById('btn-RUNNING');
+    const runIcon = document.getElementById('run-icon');
+    const runText = document.getElementById('run-text');
+    const btnStartShift = document.getElementById('btn-start-shift');
+    const btnEndShift = document.getElementById('btn-end-shift');
+
+    // 設定入力欄
+    const stdSpmInput = document.getElementById('std-spm');
+    const actSpmInput = document.getElementById('act-spm');
+    const targetInput = document.getElementById('target-count');
+    const targetDisplayVal = document.getElementById('target-val');
+
+    // リセット用
+    const resetBtn = document.getElementById('btn-reset');
+    const resetText = document.getElementById('reset-text');
+    let resetConfirmState = false;
+    let resetTimer = null;
+
+    // iPad用自動スリープ防止用（Wake Lock API）
+    let wakeLock = null;
+
+    // ==========================================
+    //   4. アプリ起動時の初期ロード処理
+    // ==========================================
+    window.onload = function() {
+        // ローカルストレージから過去ログをロード
+        try {
+            const saved = localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY);
+            if (saved) {
+                historyLogs = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('過去ログの読み込みに失敗しました', e);
+        }
+        
+        // 入力値の初期状態を設定
+        stdSpmInput.value = CONFIG.INITIAL_STANDARD_SPM.toFixed(1);
+        actSpmInput.value = CONFIG.INITIAL_STANDARD_SPM.toFixed(1);
+        targetInput.value = CONFIG.INITIAL_TARGET_COUNT;
+        
+        // 1秒に1回の時計更新＆リアルタイム計算ループの開始
+        setInterval(updateClock, 1000);
+        setInterval(onTimerTick, 1000);
+        
+        // 過去ログテーブルを描画
+        renderHistoryTable();
+    };
+
+    // iPadで動いているときに画面が自動で暗くなるのを強力に防ぐ
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (err) {
+            console.warn(`Wake Lockを起動できませんでした: ${err.message}`);
+        }
+    }
+    document.addEventListener('click', requestWakeLock);
+    document.addEventListener('touchstart', requestWakeLock);
+
+    // ==========================================
+    //   5. リアルタイム時間＆数値連動処理
+    // ==========================================
+    // 右上の現在時刻を更新する処理
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('live-time').innerText = now.toTimeString().split(' ')[0];
+    }
+
+    // 目標数が変更されたときのイベント
+    targetInput.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value) || 0;
+        state.targetCount = val;
+        targetDisplayVal.innerText = val.toLocaleString();
+    });
+
+    // 標準SPMを変更した際、自動的に実績SPM(実態値)も同じ数値に連動する
+    stdSpmInput.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        state.standardSPM = val;
+        actSpmInput.value = val.toFixed(1);
+        state.actualSPM = val;
+        updateCalculations();
+    });
+
+    // 実績SPM変更時
+    actSpmInput.addEventListener('input', (e) => {
+        state.actualSPM = parseFloat(e.target.value) || 0;
+        updateCalculations();
+    });
+
+    // 1秒ごとに稼働状況にあわせてタイマーを進める処理
+    function onTimerTick() {
+        // 始業開始していない場合は一切時間はカウントしない
+        if (!state.isShiftActive) return;
+
+        state.standardSPM = parseFloat(stdSpmInput.value) || 0.1;
+        state.actualSPM = parseFloat(actSpmInput.value) || 0;
+
+        // 現在の作業ステータスに応じて各タイマーをインクリメント
+        if (state.status === 'RUNNING') {
+            state.runningSeconds++;
+            // 稼働時のみ：実績SPM（1分あたり加工数）をもとに秒割した加工数を自動加算
+            state.accumulatedCount += (state.actualSPM / 60);
+        } else if (state.status === 'MOLD') {
+            state.moldSeconds++;
+            // 金型交換中も分母は増えるため、稼働率はリアルタイムに低下していきます
+        } else if (state.status === 'BREAK') {
+            state.breakSeconds++;
+        } else if (state.status === 'STOP') {
+            state.stopSeconds++;
+        }
+
+        // リアルタイム再計算
+        updateCalculations();
+
+        // 画面表記を更新
+        clockEl.innerText = formatTime(state.runningSeconds);
+        countEl.innerText = Math.floor(state.accumulatedCount).toLocaleString();
+        
+        timeMoldEl.innerText = formatTime(state.moldSeconds);
+        timeBreakEl.innerText = formatTime(state.breakSeconds);
+        timeStopEl.innerText = formatTime(state.stopSeconds);
+    }
+
+    // 性能稼働率の計算ロジック
+    function updateCalculations() {
+        if (state.standardSPM <= 0) return;
+        
+        // 分母：生産稼働時間 ＋ 金型交換時間
+        let activeWorkSeconds = state.runningSeconds + state.moldSeconds;
+        
+        if (activeWorkSeconds === 0) {
+            rateEl.innerText = "100.0";
+            rateEl.style.color = '#10b981';
+            return;
+        }
+
+        // 標準サイクルタイム(1個あたりの秒数) ＝ 60秒 / 標準SPM
+        let standardCT = 60 / state.standardSPM;
+
+        // 性能稼働率 ＝ （標準サイクルタイム × 生産加工数）/ 総稼働時間 * 100
+        let rate = ((standardCT * state.accumulatedCount) / activeWorkSeconds) * 100;
+        
+        // 異常値を防止するため上限は200%とする
+        rate = Math.min(rate, 200.0);
+        
+        // 画面更新
+        rateEl.innerText = rate.toFixed(1);
+        
+        // 稼働率に応じたカラー判定
+        if (rate >= CONFIG.PERFORMANCE_GOOD_LIMIT) {
+            rateEl.style.color = '#10b981'; // 良好：緑
+        } else if (rate >= CONFIG.PERFORMANCE_NORMAL_LIMIT) {
+            rateEl.style.color = '#fbbf24'; // 普通・警告：黄
+        } else {
+            rateEl.style.color = '#f87171'; // 遅れ・要改善：赤
+        }
+    }
+
+    // ==========================================
+    //   6. 始業・終業フロー処理
+    // ==========================================
+    // 「始業開始」ボタン押下
+    function startShift() {
+        if (state.isShiftActive) return;
+
+        state.isShiftActive = true;
+        state.startTime = new Date();
+        
+        timeStartLabel.innerText = state.startTime.toTimeString().split(' ')[0];
+        timeEndLabel.innerText = "稼働中...";
+
+        // 始業ボタンを無効化、終業を有効化
+        btnStartShift.classList.add('opacity-50', 'pointer-events-none');
+        btnEndShift.classList.remove('opacity-50', 'pointer-events-none');
+
+        // 各種状態切り替えボタンをロック解除（半透明解除、タップ可能）
+        document.querySelectorAll('.btn').forEach(b => {
+            b.classList.remove('pointer-events-none');
+            b.style.opacity = '0.4';
+        });
+
+        // 始業と同時に、自動的に「生産中（稼働中）」ステータスに移行
+        setStatus('RUNNING');
+        showToast("始業時間を記録しました。自動で測定を開始します。");
+    }
+
+    // 終業確認モーダルを開く
+    function openEndShiftModal() {
+        if (!state.isShiftActive) return;
+        
+        const now = new Date();
+        document.getElementById('modal-end-time').innerText = now.toTimeString().split(' ')[0];
+        
+        const modal = document.getElementById('end-shift-modal');
+        const card = document.getElementById('end-shift-modal-card');
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        card.classList.remove('scale-95');
+    }
+
+    // 終業確認モーダルを閉じる
+    function closeEndShiftModal() {
+        const modal = document.getElementById('end-shift-modal');
+        const card = document.getElementById('end-shift-modal-card');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        card.classList.add('scale-95');
+    }
+
+    // 終業を確定する
+    function confirmEndShift() {
+        state.endTime = new Date();
+        timeEndLabel.innerText = state.endTime.toTimeString().split(' ')[0];
+        closeEndShiftModal();
+
+        // 作業を停止状態に戻す
+        setStatus('IDLE');
+        
+        // ステータスボタンを全て非活性（タップ不可）にロックする
+        document.querySelectorAll('.btn').forEach(b => {
+            b.classList.add('pointer-events-none');
+            b.style.opacity = '0.15';
+        });
+
+        // ボタンの活性化状態をリセット
+        btnStartShift.classList.remove('opacity-50', 'pointer-events-none');
+        btnEndShift.classList.add('opacity-50', 'pointer-events-none');
+        
+        state.isShiftActive = false;
+
+        // 本日のレコードを作成して履歴に保存
+        saveCurrentToHistory();
+        showToast("本日の実績データを保存しました。");
+    }
+
+    // ==========================================
+    //   7. データ保存・日報CSV・メール転送
+    // ==========================================
+    // 現在のシフト実績を保存
+    function saveCurrentToHistory() {
+        const today = new Date();
+        const dateStr = today.getFullYear() + '/' + (today.getMonth() + 1).toString().padStart(2, '0') + '/' + today.getDate().toString().padStart(2, '0');
+        
+        const calculatedRate = parseFloat(rateEl.innerText) || 100.0;
+        
+        const record = {
+            id: Date.now(),
+            date: dateStr,
+            start: state.startTime ? state.startTime.toTimeString().split(' ')[0] : '未記録',
+            end: state.endTime ? state.endTime.toTimeString().split(' ')[0] : '未記録',
+            standardSPM: state.standardSPM.toFixed(1),
+            actualSPM: state.actualSPM.toFixed(1),
+            count: Math.floor(state.accumulatedCount),
+            running: formatTime(state.runningSeconds),
+            mold: formatTime(state.moldSeconds),
+            break: formatTime(state.breakSeconds),
+            stop: formatTime(state.stopSeconds),
+            perfRate: calculatedRate.toFixed(1)
+        };
+
+        // 過去履歴の先頭（最新順）にレコードを追加
+        historyLogs.unshift(record);
+        
+        // ローカルストレージに保存
+        localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(historyLogs));
+        
+        // テーブルを再描写
+        renderHistoryTable();
+
+        // 終業後、報告メールアプリを自動起動
+        triggerAutoEmail(record);
+    }
+
+    // メールアプリの起動
+    function triggerAutoEmail(rec) {
+        const emailAddress = document.getElementById('report-email').value || 'report@example.com';
+        const subject = encodeURIComponent(`【プレス日報】実績報告_${rec.date}_${rec.start}〜${rec.end}`);
+        
+        // メールの本文（エクセルにそのままコピーしやすいような構成）
+        const bodyText = `関係者各位\n\nお疲れ様です。本日のプレス作業実績データを報告いたします。\n\n` + 
+            `----------------------------------------\n` +
+            `■ 本日の日報実績概要\n` +
+            `----------------------------------------\n` +
+            `・日付: ${rec.date}\n` +
+            `・稼働時間帯: ${rec.start} 〜 ${rec.end}\n` +
+            `・標準SPM (標準): ${rec.standardSPM}\n` +
+            `・実態SPM (設定値): ${rec.actualSPM}\n` +
+            `・自動集計加工数: ${rec.count} pcs\n` +
+            `・正味生産稼働時間: ${rec.running}\n` +
+            `・金型段取交換時間: ${rec.mold}\n` +
+            `・休憩・4S時間: ${rec.break}\n` +
+            `・異常トラブル停止: ${rec.stop}\n` +
+            `・性能稼働率実績: ${rec.perfRate}%\n` +
+            `----------------------------------------\n\n` +
+            `※こちらのメールはiPadから自動作成されています。\n` +
+            `送信ボタンを押すだけで日報完了となります。`;
+
+        const mailtoUrl = `mailto:${emailAddress}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+        
+        // 少しディレイをかけて安全にiPadの標準メールアプリを呼び出し
+        setTimeout(() => {
+            window.location.href = mailtoUrl;
+        }, 1200);
+    }
+
+    // 過去履歴テーブルのHTML描画
+    function renderHistoryTable() {
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = '';
+
+        if (historyLogs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center text-slate-500 font-bold">保存された日報データはありません。始業し、終業を行うとここに追加されます。</td></tr>';
+            return;
+        }
+
+        historyLogs.forEach(rec => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-900/50 transition-colors';
+            tr.innerHTML = `
+                <td class="p-3 font-mono text-white">${rec.date}</td>
+                <td class="p-3 font-mono text-emerald-400 font-bold">${rec.start}</td>
+                <td class="p-3 font-mono text-rose-400 font-bold">${rec.end}</td>
+                <td class="p-3 font-mono">${rec.standardSPM}</td>
+                <td class="p-3 font-mono">${rec.actualSPM}</td>
+                <td class="p-3 font-mono font-bold text-white">${rec.count}</td>
+                <td class="p-3 font-mono">${rec.running}</td>
+                <td class="p-3 font-mono text-amber-400">${rec.mold}</td>
+                <td class="p-3 font-mono">${rec.break}</td>
+                <td class="p-3 font-mono text-rose-500">${rec.stop}</td>
+                <td class="p-3 font-mono font-bold text-emerald-400 text-right text-sm">${rec.perfRate}%</td>
+                <td class="p-3 text-center flex justify-center gap-2">
+                    <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="exportSingleCSV(${rec.id})" title="この日のCSVを出力"><i class="fa-solid fa-file-csv"></i></button>
+                    <button class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg active:scale-90" onclick="sendMailAgain(${rec.id})" title="メール再送"><i class="fa-solid fa-envelope"></i></button>
+                    <button class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 p-1.5 rounded-lg active:scale-90" onclick="deleteHistory(${rec.id})" title="削除"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 過去ログを再メール
+    function sendMailAgain(id) {
+        const rec = historyLogs.find(l => l.id === id);
+        if (rec) triggerAutoEmail(rec);
+    }
+
+    // 特定の過去ログ削除
+    function deleteHistory(id) {
+        if (confirm("この日の記録データを履歴から完全に削除しますか？")) {
+            historyLogs = historyLogs.filter(l => l.id !== id);
+            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(historyLogs));
+            renderHistoryTable();
+            showToast("実績データを削除しました。");
+        }
+    }
+
+    // 全履歴を1つのCSVにまとめてダウンロード
+    function exportFullHistoryToCSV() {
+        if (historyLogs.length === 0) return;
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Excelでの文字化けを防ぐBOMを追加
+        csvContent += "日付,始業時間,終業時間,標準SPM,実績SPM,加工数,実生産稼働時間,金型交換時間,休憩時間,異常停止時間,性能稼働率\n";
+        
+        historyLogs.forEach(rec => {
+            csvContent += `${rec.date},${rec.start},${rec.end},${rec.standardSPM},${rec.actualSPM},${rec.count},${rec.running},${rec.mold},${rec.break},${rec.stop},${rec.perfRate}%\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "全プレス作業日報履歴データ.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // 単体のレコードをCSV出力
+    function exportSingleCSV(id) {
+        const rec = historyLogs.find(l => l.id === id);
+        if (!rec) return;
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "日付,始業時間,終業時間,標準SPM,実績SPM,加工数,実生産稼働時間,金型交換時間,休憩時間,異常停止時間,性能稼働率\n";
+        csvContent += `${rec.date},${rec.start},${rec.end},${rec.standardSPM},${rec.actualSPM},${rec.count},${rec.running},${rec.mold},${rec.break},${rec.stop},${rec.perfRate}%\n`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `日報_${rec.date.replace(/\//g, '-')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ==========================================
+    //   8. 操作パネルのステータス管理
+    // ==========================================
+    function setStatus(newStatus) {
+        // リセットボタンの確認状態ならリセット解除
+        cancelResetState();
+
+        document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        statusLabel.className = 'status-indicator';
+
+        // 生産中（RUNNING）かつ再度「稼働中」ボタンが押された（一時停止を意味する）
+        if (state.status === 'RUNNING' && newStatus === 'RUNNING') {
+            state.status = 'IDLE';
+            statusLabel.innerText = '一時停止中';
+            clockSub.innerText = 'PAUSED / 一時停止中';
+            clockSub.classList.remove('running');
+            rateBox.classList.remove('active');
+            
+            // 稼働ボタン表示を「稼働中（再生）」に戻す
+            runBtn.className = 'btn btn-running';
+            runIcon.className = 'fa-solid fa-play';
+            runText.innerText = '稼働中';
+            return;
+        }
+
+        if (state.status === newStatus) {
+            state.status = 'IDLE';
+            statusLabel.innerText = '待機中';
+            clockSub.innerText = 'PAUSED / 停止中';
+            clockSub.classList.remove('running');
+            rateBox.classList.remove('active');
+            
+            resetRunButton();
+        } else {
+            state.status = newStatus;
+            document.getElementById('btn-' + newStatus).classList.add('active');
+            
+            const labels = { 
+                'RUNNING': '生産中', 
+                'MOLD': '金型交換中', 
+                'BREAK': '休憩中', 
+                'STOP': '異常停止中' 
+            };
+            statusLabel.innerText = labels[newStatus];
+            statusLabel.classList.add('status-' + newStatus);
+            
+            if (newStatus === 'RUNNING') {
+                clockSub.innerText = 'RUNNING NOW';
+                clockSub.classList.add('running');
+                rateBox.classList.add('active');
+                
+                // 再生中はボタンを「一時停止」の見た目に変更
+                runBtn.className = 'btn btn-pause active';
+                runIcon.className = 'fa-solid fa-pause';
+                runText.innerText = '一時停止';
+            } else {
+                clockSub.innerText = 'INDIRECT WORK / 非稼働';
+                clockSub.classList.remove('running');
+                rateBox.classList.remove('active');
+                
+                resetRunButton();
+            }
+        }
+    }
+
+    function resetRunButton() {
+        runBtn.className = 'btn btn-running';
+        runIcon.className = 'fa-solid fa-play';
+        runText.innerText = '稼働中';
+    }
+
+    // ==========================================
+    //   9. 誤タップ防止の2段階リセット処理
+    // ==========================================
+    function triggerReset() {
+        if (!resetConfirmState) {
+            resetConfirmState = true;
+            resetBtn.classList.add('confirming');
+            resetText.innerText = '本当にリセット？';
+            
+            if (resetTimer) clearTimeout(resetTimer);
+            resetTimer = setTimeout(() => {
+                cancelResetState();
+            }, CONFIG.RESET_TIMEOUT_MS);
+        } else {
+            executeReset();
+        }
+    }
+
+    function cancelResetState() {
+        resetConfirmState = false;
+        resetBtn.classList.remove('confirming');
+        resetText.innerText = 'データクリア';
+    }
+
+    // 実データのリセット
+    function executeReset() {
+        state.status = 'IDLE';
+        state.isShiftActive = false;
+        state.startTime = null;
+        state.endTime = null;
+        state.runningSeconds = 0;
+        state.moldSeconds = 0;
+        state.breakSeconds = 0;
+        state.stopSeconds = 0;
+        state.accumulatedCount = 0;
+        
+        // 各種表示の初期化
+        document.querySelectorAll('.btn').forEach(b => {
+            b.classList.remove('active');
+            b.classList.add('pointer-events-none');
+            b.style.opacity = '0.15';
+        });
+        statusLabel.className = 'status-indicator';
+        statusLabel.innerText = '待機中';
+        clockSub.innerText = 'READY / 始業ボタンを押してください';
+        clockSub.classList.remove('running');
+        rateBox.classList.remove('active');
+        
+        timeStartLabel.innerText = "未記録";
+        timeEndLabel.innerText = "未記録";
+
+        btnStartShift.classList.remove('opacity-50', 'pointer-events-none');
+        btnEndShift.classList.add('opacity-50', 'pointer-events-none');
+
+        resetRunButton();
+        cancelResetState();
+        updateCalculations();
+        showToast("本日の稼働データ、タイマーをリセットしました。");
+    }
+
+    // ==========================================
+    //   10. タブ切り替え ＆ トースト通知
+    // ==========================================
+    function switchView(viewName) {
+        const dashboard = document.getElementById('view-dashboard');
+        const history = document.getElementById('view-history');
+        const tabDash = document.getElementById('tab-dashboard');
+        const tabHist = document.getElementById('tab-history');
+
+        if (viewName === 'dashboard') {
+            dashboard.classList.remove('hidden');
+            history.classList.add('hidden');
+            
+            tabDash.className = "px-4 py-2 text-xs font-bold rounded-lg transition-all text-white bg-slate-800 shadow";
+            tabHist.className = "px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+        } else {
+            dashboard.classList.add('hidden');
+            history.classList.remove('hidden');
+            
+            tabDash.className = "px-4 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white";
+            tabHist.className = "px-4 py-2 text-xs font-bold rounded-lg transition-all text-white bg-slate-800 shadow";
+            
+            // 履歴テーブルの再描画
+            renderHistoryTable();
+        }
+    }
+
+    // トースト通知を表示
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        const text = document.getElementById('toast-text');
+        text.innerText = message;
+        
+        toast.classList.remove('opacity-0', 'pointer-events-none');
+        toast.classList.add('opacity-100');
+        
+        setTimeout(() => {
+            toast.classList.remove('opacity-100');
+            toast.classList.add('opacity-0', 'pointer-events-none');
+        }, 3000);
+    }
+
+    // 秒数を hh:mm:ss 形式に変換する共通ヘルパー
+    function formatTime(sec) {
+        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+</script>
+
+</body>
+</html>
